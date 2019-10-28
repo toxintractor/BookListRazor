@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BookListRazor.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookListRazor.Pages.BookList
 {
@@ -20,22 +21,36 @@ namespace BookListRazor.Pages.BookList
         [BindProperty]
         public Book book { get; set; }
 
-        public void OnGet()
+        public void OnGet(int id)
         {
-
+            book = _db.Books.Where(x => x.Id == id).FirstOrDefault();
+            
         }
 
-        public async Task<IActionResult> OnPost()
+        public async Task<IActionResult> OnPost(int id=0)
         {
             if (!ModelState.IsValid)
             {
                 return Page();
             }
             else
+            {
+                if(id == 0)
+                {
+                    _db.Books.Add(book);
+                }
+                else
+                {
+                    book.Id = id;
+                    _db.Entry(book).State = EntityState.Modified;
+                }
+
+                await _db.SaveChangesAsync();
+                return RedirectToPage("Index");
+
+            }
             
-            _db.Books.Add(book);
-            await _db.SaveChangesAsync();
-            return RedirectToPage("Index");
+
         }
     }
 }
